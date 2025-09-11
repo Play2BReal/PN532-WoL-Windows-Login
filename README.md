@@ -21,6 +21,7 @@ ESP32       PN532 NFC Reader
 GND     →   GND
 GPIO4   →   SDA (I2C)
 GPIO5   →   SCL (I2C)
+GPIO6   →   IRQ
 ```
 
 ### LED Configuration
@@ -48,7 +49,6 @@ GPIO5   →   SCL (I2C)
 ### WiFi Settings
 - Configure your WiFi SSID and password
 - Supports WPA2 authentication
-- Automatic reconnection with keep-alive
 
 ### PC Settings
 - Set your PC's MAC address for Wake-on-LAN

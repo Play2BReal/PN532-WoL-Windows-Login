@@ -25,8 +25,8 @@ GPIO6   →   IRQ
 ```
 
 ### LED Configuration
-- **NeoPixel**: Connect to GPIO2 (WS2812B compatible)
-- **Normal LED**: Connect to GPIO2 (built-in LED on most dev boards)
+- **NeoPixel**: Connect to GPIO (WS2812B Some dev boards compatible)
+- **Normal LED**: Connect to GPIO (built-in LED on most dev boards)
 
 ## Software Setup
 

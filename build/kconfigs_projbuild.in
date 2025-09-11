@@ -1,6 +1,0 @@
-source "C:/esp-idf/components/bootloader/Kconfig.projbuild"
-source "C:/esp-idf/components/esp_app_format/Kconfig.projbuild"
-source "C:/esp-idf/components/esp_rom/Kconfig.projbuild"
-source "C:/esp-idf/components/esptool_py/Kconfig.projbuild"
-source "C:/esp-idf/components/partition_table/Kconfig.projbuild"
-source "C:/Users/Play2BReal.DESKTOP-KQE30JN/Documents/Devices/Test - Copy/managed_components/garag__esp-idf-pn532/Kconfig.projbuild"

@@ -1,0 +1,53 @@
+menu "Custom Pin Configuration"
+
+    config PN532_SCL_PIN
+        int "PN532 I2C SCL Pin"
+        range 0 21
+        help
+            GPIO pin number for PN532 I2C SCL (Serial Clock Line)
+
+    config PN532_SDA_PIN
+        int "PN532 I2C SDA Pin"
+        range 0 21
+        help
+            GPIO pin number for PN532 I2C SDA (Serial Data Line)
+
+    config PN532_RESET_PIN
+        int "PN532 Reset Pin"
+        range -1 21
+        help
+            GPIO pin number for PN532 Reset pin (-1 to disable)
+
+    config PN532_IRQ_PIN
+        int "PN532 Interrupt Pin"
+        range 0 21
+        help
+            GPIO pin number for PN532 Interrupt pin
+
+    config LED_PIN
+        int "LED Pin"
+        range 0 52
+        help
+            GPIO pin number for LED (normal LED or Neopixel data pin)
+
+    config LED_NUM
+        int "Number of LEDs"
+        range 1 100
+        default 1
+        help
+            Number of LEDs in the strip (for Neopixel) or 1 for single LED
+
+    config LED_RMT_RES_HZ
+        int "LED RMT Resolution (Hz)"
+        range 1000000 40000000
+        default 10000000
+        help
+            RMT resolution frequency for Neopixel LEDs (10MHz default)
+
+    config USE_NEOPIXEL
+        bool "Use Neopixel LED"
+        default n
+        help
+            Enable Neopixel RGB LED support. If disabled, uses normal single-color LED.
+
+endmenu

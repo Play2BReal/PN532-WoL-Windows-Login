@@ -1,0 +1,40 @@
+# ESP32-C5 Configuration
+CONFIG_IDF_TARGET="esp32c5"
+
+# FreeRTOS Configuration
+CONFIG_FREERTOS_HZ=1000
+
+# Log Configuration
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_MAXIMUM_LEVEL=5
+
+# I2C Configuration
+CONFIG_I2C_ENABLE_DEBUG_LOG=y
+
+# Component Configuration
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=2304
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=3584
+
+# Memory Configuration
+CONFIG_ESP32C5_DEFAULT_CPU_FREQ_160=y
+CONFIG_ESP32C5_DEFAULT_CPU_FREQ_MHZ=160
+
+# Partition Table
+CONFIG_PARTITION_TABLE_SINGLE_APP=y
+
+
+
+
+## TinyUSB HID (ESP32-S3)
+# Enable HID and use default descriptors (esp_tinyusb provides device + strings)
+CONFIG_TINYUSB_HID_COUNT=1
+
+# Prefer Full-Speed (FS) and disable DMA to avoid DWC2 asserts on some boards
+# Note: DMA can be re-enabled later once stable
+# CONFIG_TINYUSB_MODE_DMA is not set
+CONFIG_TINYUSB_RHPORT_FS=y
+
+# TinyUSB task config
+CONFIG_TINYUSB_TASK_STACK_SIZE=4096
+CONFIG_TINYUSB_TASK_PRIORITY=5
+CONFIG_TINYUSB_DEBUG_LEVEL=1

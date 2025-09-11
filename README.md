@@ -1,6 +1,6 @@
-# ESP32-S3 Windows Login NFC Reader
+# ESP32 Windows Login NFC Reader
 
-A modular ESP32-S3 based NFC reader that automatically logs into Windows by reading NTAG cards, sending Wake-on-LAN packets, and typing passwords via USB HID.
+A modular ESP32 based NFC reader that automatically logs into Windows by reading NTAG cards, sending Wake-on-LAN packets, and typing passwords via USB HID.
 
 ## Features
 
@@ -13,9 +13,9 @@ A modular ESP32-S3 based NFC reader that automatically logs into Windows by read
 
 ## Hardware Setup
 
-### ESP32-S3 Wiring
+### ESP32 Wiring
 ```
-ESP32-S3    PN532 NFC Reader
+ESP32       PN532 NFC Reader
 --------    ----------------
 3.3V    →   VCC
 GND     →   GND
@@ -30,7 +30,7 @@ GPIO5   →   SCL (I2C)
 ## Software Setup
 
 1. **Install ESP-IDF** (v5.5+)
-2. **Set target**: `idf.py set-target esp32s3`
+2. **Set target**: `idf.py set-target esp32` (or your specific variant like `esp32s3`, `esp32c3`, etc.)
 3. **Configure**: Edit `main/main.c` with your settings:
    ```c
    #define WIFI_SSID "YourWiFiName"

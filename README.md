@@ -1,6 +1,6 @@
-# ESP32 Windows Login NFC Reader
+# ESP32-S3 Windows Login NFC Reader
 
-A modular ESP32 based NFC reader that automatically logs into Windows by reading NTAG cards, sending Wake-on-LAN packets, and typing passwords via USB HID.
+A modular ESP32-S3 based NFC reader that automatically logs into Windows by reading NTAG cards, sending Wake-on-LAN packets, and typing passwords via USB HID.
 
 ## Features
 
@@ -13,33 +13,38 @@ A modular ESP32 based NFC reader that automatically logs into Windows by reading
 
 ## Hardware Setup
 
-### ESP32 Wiring
+### ESP32-S3 Wiring
 ```
-ESP32       PN532 NFC Reader
+ESP32-S3    PN532 NFC Reader
 --------    ----------------
 3.3V    →   VCC
 GND     →   GND
 GPIO4   →   SDA (I2C)
 GPIO5   →   SCL (I2C)
-GPIO6   →   IRQ
+GPIO6   →   IRQ 
 ```
 
 ### LED Configuration
-- **NeoPixel**: Connect to GPIO (WS2812B Some dev boards compatible)
-- **Normal LED**: Connect to GPIO (built-in LED on most dev boards)
+- **NeoPixel**: Connect to GPIO2 (WS2812B compatible)
+- **Normal LED**: Connect to GPIO2 (built-in LED on most dev boards)
 
 ## Software Setup
 
 1. **Install ESP-IDF** (v5.5+)
-2. **Set target**: `idf.py set-target esp32` (or your specific variant like `esp32s3`, `esp32c3`, etc.)
+2. **Set target**: `idf.py set-target esp32s3`
 3. **Configure**: Edit `main/main.c` with your settings:
    ```c
-   #define WIFI_SSID "YourWiFiName"
-   #define WIFI_PASSWORD "YourWiFiPassword"
-   #define PC_MAC_ADDRESS "AA:BB:CC:DD:EE:FF"
-   #define PC_IP_ADDRESS "192.168.1.100"
-   #define WINDOWS_PASSWORD "YourWindowsPassword"
-   #define AUTH_URL "YourAuthURL.com"
+    #define WIFI_SSID "WiFiSSID"
+    #define WIFI_PASSWORD "WiFiPassword"
+    #define PC_MAC_ADDRESS "XX:XX:XX:XX:XX:XX"
+    #define PC_IP_ADDRESS "x.x.x.x"
+    #define WINDOWS_PASSWORD "WindowsPassword"
+   
+   // Add your authorized NFC card UIDs here
+   static const uint8_t authorized_uids[MAX_AUTHORIZED_UIDS][MAX_UID_LENGTH] = {
+       {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Your card's UID
+       // Add more UIDs as needed
+   };
    ```
 4. **Build**: `idf.py build`
 5. **Flash**: `idf.py flash monitor`
@@ -49,6 +54,7 @@ GPIO6   →   IRQ
 ### WiFi Settings
 - Configure your WiFi SSID and password
 - Supports WPA2 authentication
+- Automatic reconnection with keep-alive
 
 ### PC Settings
 - Set your PC's MAC address for Wake-on-LAN
@@ -56,9 +62,10 @@ GPIO6   →   IRQ
 - Enable Wake-on-LAN in BIOS and Windows
 
 ### NFC Authentication
-- Set the authentication URL that must be present on NTAG cards
-- Case-insensitive matching
+- Configure authorized UIDs for your NFC cards
+- UID-based authentication (more secure than URL-based)
 - Supports any NTAG213/215/216 cards
+- Up to 5 authorized cards can be configured
 
 ## LED Diagnostics
 
@@ -79,7 +86,7 @@ GPIO6   →   IRQ
 
 1. **Boot**: Device initializes WiFi, HID keyboard, and NFC reader
 2. **NFC Scan**: Waits for NTAG card to be presented
-3. **Authentication**: Validates card against configured URL
+3. **Authentication**: Validates card UID against authorized list
 4. **WiFi Check**: Ensures WiFi connection is active
 5. **PC Detection**: Checks if PC is already online
 6. **Wake-on-LAN**: Sends magic packets if PC is offline
@@ -105,9 +112,10 @@ GPIO6   →   IRQ
 - Verify password is correct
 
 ### NFC Issues
-- Ensure NTAG card contains correct URL
+- Ensure NTAG card UID is in authorized list
 - Check card is properly formatted
 - Verify I2C connections
+- Use serial monitor to see card UID when tapping
 
 ## Project Structure
 

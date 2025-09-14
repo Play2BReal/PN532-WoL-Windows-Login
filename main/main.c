@@ -38,15 +38,34 @@ static const char *TAG = "windows_login_nfc";
 #define LED_NUM CONFIG_LED_NUM
 #define LED_RMT_RES_HZ CONFIG_LED_RMT_RES_HZ
 
-// Authentication URL
-#define AUTH_URL "put your URL here or other ntag data text here for the reader!"
+// Authorized UIDs (replace with your actual card UIDs)
+// Format: Each UID is 4 or 7 bytes, add as many as needed
+#define MAX_AUTHORIZED_UIDS 5
+#define MAX_UID_LENGTH 7
+
+// Add your authorized UID here (example UID - replace with your actual card UID)
+static const uint8_t authorized_uids[MAX_AUTHORIZED_UIDS][MAX_UID_LENGTH] = {
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Placeholder for additional UIDs
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Placeholder for additional UIDs
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Placeholder for additional UIDs
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Placeholder for additional UIDs
+    {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  // Placeholder for additional UIDs
+};
+
+static const uint8_t authorized_uid_lengths[MAX_AUTHORIZED_UIDS] = {
+    7, // 0 means unused slot
+    4, // 0 means unused slot
+    0, // 0 means unused slot
+    0, // 0 means unused slot
+    0  // 0 means unused slot
+};
 
 // Windows Login Configuration
-#define WIFI_SSID "WiFiSSID"           // Change this to your WiFi SSID
-#define WIFI_PASSWORD "WiFiPassword"   // Change this to your WiFi password
-#define PC_MAC_ADDRESS "xx:xx:xx:xx:xx:xx"   // Change this to your PC's MAC address
-#define PC_IP_ADDRESS "x.x.x.x"        // Change this to your PC's IP address
-#define WINDOWS_PASSWORD "Pass"     // Change this to your Windows password
+#define WIFI_SSID "WiFiSSID"
+#define WIFI_PASSWORD "WiFiPassword"
+#define PC_MAC_ADDRESS "XX:XX:XX:XX:XX:XX"
+#define PC_IP_ADDRESS "x.x.x.x"
+#define WINDOWS_PASSWORD "WindowsPassword"
 
 // Set to 1 to force sending WoL packets on each tap regardless of PC state (for testing with Wireshark)
 #define WOL_ALWAYS_SEND_FOR_TEST 0
@@ -111,9 +130,35 @@ bool extract_url_from_ndef(uint8_t* data, int data_len, char* url, int url_max_l
     return false;
 }
 
-// Function to check if URL matches authentication URL (case-insensitive)
-bool authenticate_url(const char* extracted_url) {
-    return strcasestr_simple(extracted_url, AUTH_URL);
+// Function to check if UID is authorized
+bool authenticate_uid(const uint8_t* uid, uint8_t uid_length) {
+    if (!uid || uid_length == 0) return false;
+    
+    // Check against all authorized UIDs
+    for (int i = 0; i < MAX_AUTHORIZED_UIDS; i++) {
+        // Skip unused slots (length = 0)
+        if (authorized_uid_lengths[i] == 0) continue;
+        
+        // Check if lengths match
+        if (authorized_uid_lengths[i] != uid_length) continue;
+        
+        // Compare UID bytes
+        bool match = true;
+        for (int j = 0; j < uid_length; j++) {
+            if (authorized_uids[i][j] != uid[j]) {
+                match = false;
+                break;
+            }
+        }
+        
+        if (match) {
+            ESP_LOGI(TAG, "✅ UID matches authorized UID #%d", i + 1);
+            return true;
+        }
+    }
+    
+    ESP_LOGI(TAG, "❌ UID not found in authorized list");
+    return false;
 }
 
 // LED status indication function (legacy - use specific functions instead)
@@ -601,6 +646,13 @@ void app_main()
     
     ESP_LOGI(TAG, "🔄 Ready! Waiting for NFC card authentication...");
     ESP_LOGI(TAG, "💡 Tap your authorized NFC card to trigger Windows login");
+    ESP_LOGI(TAG, "📋 Authorized UIDs configured:");
+    for (int i = 0; i < MAX_AUTHORIZED_UIDS; i++) {
+        if (authorized_uid_lengths[i] > 0) {
+            ESP_LOGI(TAG, "   UID #%d (%d bytes):", i + 1, authorized_uid_lengths[i]);
+            ESP_LOG_BUFFER_HEX_LEVEL(TAG, authorized_uids[i], authorized_uid_lengths[i], ESP_LOG_INFO);
+        }
+    }
     
     // Start WiFi health check task
     ESP_LOGI(TAG, "🔧 Starting WiFi health monitoring...");
@@ -731,40 +783,32 @@ void app_main()
                 continue; // Try again
             }
             
-            // Try to authenticate the card
-            if (ndef_len > 0) {
-                char extracted_url[256];
-                if (extract_url_from_ndef(ndef_data, ndef_len, extracted_url, sizeof(extracted_url))) {
-                    ESP_LOGI(TAG, "Extracted URL: %s", extracted_url);
-                    
-                    if (authenticate_url(extracted_url)) {
-                        ESP_LOGI(TAG, "✅ AUTHENTICATION SUCCESS! Card authorized.");
-                        auth_success = true;
-                        
-                        // Show authentication success LED
-                        led_auth_success();
-                        
-                        // Perform Windows login instead of just LED effects
-                        ESP_LOGI(TAG, "🚀 Triggering Windows login process...");
-                        esp_err_t login_result = perform_windows_login();
-                        
-                        if (login_result == ESP_OK) {
-                            ESP_LOGI(TAG, "🎉 Windows login process completed successfully!");
-                        } else {
-                            ESP_LOGE(TAG, "❌ Windows login process failed!");
-                        }
-                    } else {
-                        ESP_LOGI(TAG, "❌ Authentication failed. URL does not match: %s", AUTH_URL);
-                        
-                        // Show authentication failure LED
-                        led_auth_fail();
-                    }
+            // Try to authenticate the card using UID
+            ESP_LOGI(TAG, "🔍 Authenticating card using UID...");
+            ESP_LOGI(TAG, "📋 Card UID (%d bytes):", uid_length);
+            ESP_LOG_BUFFER_HEX_LEVEL(TAG, uid, uid_length, ESP_LOG_INFO);
+            
+            if (authenticate_uid(uid, uid_length)) {
+                ESP_LOGI(TAG, "✅ AUTHENTICATION SUCCESS! Card authorized.");
+                auth_success = true;
+                
+                // Show authentication success LED
+                led_auth_success();
+                
+                // Perform Windows login instead of just LED effects
+                ESP_LOGI(TAG, "🚀 Triggering Windows login process...");
+                esp_err_t login_result = perform_windows_login();
+                
+                if (login_result == ESP_OK) {
+                    ESP_LOGI(TAG, "🎉 Windows login process completed successfully!");
                 } else {
-                    ESP_LOGI(TAG, "❌ No valid NDEF URL found on card");
-                    
-                    // Show authentication failure LED
-                    led_auth_fail();
+                    ESP_LOGE(TAG, "❌ Windows login process failed!");
                 }
+            } else {
+                ESP_LOGI(TAG, "❌ Authentication failed. UID not authorized.");
+                
+                // Show authentication failure LED
+                led_auth_fail();
             }
             
             // Continue reading remaining pages for display
